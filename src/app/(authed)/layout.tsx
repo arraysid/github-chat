@@ -16,7 +16,7 @@ export default async function Layout({
   const formattedUser = {
     name: user.name,
     email: user.email,
-    avatar: String(user.image),
+    avatar: user.image ?? undefined,
   };
 
   return (
