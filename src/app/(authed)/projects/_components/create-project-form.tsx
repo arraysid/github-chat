@@ -9,6 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { projectValidation } from "@/server/validation/project.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -16,16 +17,6 @@ import { FaGithub, FaKey, FaProjectDiagram } from "react-icons/fa";
 import { FiAlertCircle } from "react-icons/fi";
 import { toast } from "sonner";
 import * as z from "zod";
-
-const formSchema = z.object({
-  projectName: z
-    .string({ required_error: "Project name is required" })
-    .min(1, "Project name is required"),
-  repositoryUrl: z
-    .string({ required_error: "Project name is required" })
-    .url("Please enter a valid GitHub repository URL"),
-  githubToken: z.string().optional(),
-});
 
 const formVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -45,11 +36,16 @@ const itemVariants = {
 };
 
 export function CreateProjectForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof projectValidation>>({
+    resolver: zodResolver(projectValidation),
+    defaultValues: {
+      projectName: "",
+      repositoryUrl: "",
+      githubToken: "",
+    },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof projectValidation>) {
     try {
       console.log(values);
       toast.success("Project created successfully!", {
