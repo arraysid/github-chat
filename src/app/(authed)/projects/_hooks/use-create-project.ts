@@ -1,3 +1,4 @@
+import { queryClient } from "@/components/providers";
 import { apiClient } from "@/lib/api";
 import { projectValidation } from "@/server/validation/project.validation";
 import { useMutation } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ export function useCreateProject() {
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project Added Successfully");
     },
   });

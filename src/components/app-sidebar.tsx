@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  AudioWaveform,
-  Command,
-  FolderGit2,
-  GalleryVerticalEnd,
-} from "lucide-react";
+import { AudioWaveform, Command, GalleryVerticalEnd } from "lucide-react";
 import * as React from "react";
 
 import { NavMain } from "@/components/nav-main";
@@ -43,13 +38,6 @@ const data = {
       plan: "Free",
     },
   ],
-  projects: [
-    {
-      name: "Some Github Project",
-      url: "/dashboard",
-      icon: FolderGit2,
-    },
-  ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -60,7 +48,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain />
-        <NavProjects projects={data.projects} />
+        <NavProjects />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
