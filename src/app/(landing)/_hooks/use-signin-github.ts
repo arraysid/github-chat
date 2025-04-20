@@ -14,8 +14,5 @@ export function useSigninGithub() {
 
       return data;
     },
-    onSuccess: (data) => {
-      console.log(data);
-    },
   });
 }
