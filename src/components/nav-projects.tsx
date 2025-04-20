@@ -81,7 +81,7 @@ export function NavProjects({
         ))}
         <SidebarMenuItem>
           <SidebarMenuButton className="text-sidebar-foreground/70" asChild>
-            <Link href="/projects/new">
+            <Link href="/projects">
               <Plus className="text-sidebar-foreground/70" />
               <span>Add New Project</span>
             </Link>
