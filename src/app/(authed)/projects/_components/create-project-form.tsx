@@ -9,15 +9,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { apiClient } from "@/lib/api";
 import { projectValidation } from "@/server/validation/project.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { FaGithub, FaKey, FaProjectDiagram } from "react-icons/fa";
 import { FiAlertCircle } from "react-icons/fi";
 import * as z from "zod";
+import { useCreateProject } from "../_hooks/use-create-project";
 
 export function CreateProjectForm() {
   const form = useForm<z.infer<typeof projectValidation>>({
@@ -33,6 +32,7 @@ export function CreateProjectForm() {
 
   function onSubmit(values: z.infer<typeof projectValidation>) {
     mutate(values);
+    form.reset();
   }
 
   const formVariants = {
@@ -179,18 +179,4 @@ export function CreateProjectForm() {
       </Form>
     </motion.div>
   );
-}
-
-export function useCreateProject() {
-  return useMutation({
-    mutationFn: async (values: z.infer<typeof projectValidation>) => {
-      const { data, error } = await apiClient("@post/api/projects", {
-        body: values,
-      });
-
-      if (error) throw error;
-
-      return data;
-    },
-  });
 }
