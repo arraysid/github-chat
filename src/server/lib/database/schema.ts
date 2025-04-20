@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { users } from "./auth-schema";
 
@@ -21,5 +22,27 @@ export const usersToProjects = pgTable("user_to_project", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
 });
+
+export const usersRelations = relations(users, ({ many }) => ({
+  userToProjects: many(usersToProjects),
+}));
+
+export const projectsRelations = relations(projects, ({ many }) => ({
+  userToProjects: many(usersToProjects),
+}));
+
+export const usersToProjectsRelations = relations(
+  usersToProjects,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [usersToProjects.userId],
+      references: [users.id],
+    }),
+    project: one(projects, {
+      fields: [usersToProjects.projectId],
+      references: [projects.id],
+    }),
+  }),
+);
 
 export * from "./auth-schema";
