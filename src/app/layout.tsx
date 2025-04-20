@@ -1,3 +1,4 @@
+import "@/styles/fonts.css";
 import "@/styles/globals.css";
 import type { Metadata } from "next";
 
@@ -13,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="dark antialiased">{children}</body>
     </html>
   );
 }
