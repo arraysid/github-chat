@@ -5,11 +5,14 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { getSession } from "@/server/function/get-session";
 import { ReactNode } from "react";
 
-export default function Layout({
+export default async function Layout({
   children,
 }: Readonly<{ children: ReactNode }>) {
+  await getSession();
+
   return (
     <SidebarProvider>
       <AppSidebar />
