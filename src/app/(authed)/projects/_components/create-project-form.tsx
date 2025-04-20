@@ -9,55 +9,48 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { apiClient } from "@/lib/api";
 import { projectValidation } from "@/server/validation/project.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { FaGithub, FaKey, FaProjectDiagram } from "react-icons/fa";
 import { FiAlertCircle } from "react-icons/fi";
-import { toast } from "sonner";
 import * as z from "zod";
-
-const formVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      delayChildren: 0.3,
-      staggerChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0 },
-};
 
 export function CreateProjectForm() {
   const form = useForm<z.infer<typeof projectValidation>>({
     resolver: zodResolver(projectValidation),
     defaultValues: {
-      projectName: "",
-      repositoryUrl: "",
-      githubToken: "",
+      name: "",
+      url: "",
+      token: "",
     },
   });
 
+  const { mutate } = useCreateProject();
+
   function onSubmit(values: z.infer<typeof projectValidation>) {
-    try {
-      console.log(values);
-      toast.success("Project created successfully!", {
-        description: "Your repository is being connected...",
-      });
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Submission failed", {
-        description: "Please check your entries and try again.",
-      });
-    }
+    mutate(values);
   }
+
+  const formVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        delayChildren: 0.3,
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   return (
     <motion.div
@@ -88,7 +81,7 @@ export function CreateProjectForm() {
           <motion.div variants={itemVariants}>
             <FormField
               control={form.control}
-              name="projectName"
+              name="name"
               render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium">
@@ -117,7 +110,7 @@ export function CreateProjectForm() {
           <motion.div variants={itemVariants}>
             <FormField
               control={form.control}
-              name="repositoryUrl"
+              name="url"
               render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium">
@@ -146,7 +139,7 @@ export function CreateProjectForm() {
           <motion.div variants={itemVariants}>
             <FormField
               control={form.control}
-              name="githubToken"
+              name="token"
               render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium">
@@ -186,4 +179,18 @@ export function CreateProjectForm() {
       </Form>
     </motion.div>
   );
+}
+
+export function useCreateProject() {
+  return useMutation({
+    mutationFn: async (values: z.infer<typeof projectValidation>) => {
+      const { data, error } = await apiClient("@post/api/projects", {
+        body: values,
+      });
+
+      if (error) throw error;
+
+      return data;
+    },
+  });
 }

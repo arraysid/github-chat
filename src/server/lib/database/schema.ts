@@ -1,18 +1,24 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { nanoid32 } from "../nanoid";
 import { users } from "./auth-schema";
 
 export const projects = pgTable("projects", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => nanoid32()),
   name: text("name").notNull(),
-  githubUrl: text("github_url").notNull(),
+  url: text("url").notNull(),
+  token: text("token"),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
-  deletedAt: timestamp("deleted_at", { mode: "date" }),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at", { mode: "date" }).defaultNow().notNull(),
 });
 
 export const usersToProjects = pgTable("user_to_project", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => nanoid32()),
   userId: text("user_id")
     .notNull()
     .references(() => users.id),
@@ -20,7 +26,7 @@ export const usersToProjects = pgTable("user_to_project", {
     .notNull()
     .references(() => projects.id),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

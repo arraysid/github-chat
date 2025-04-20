@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 export const projectValidation = z.object({
-  projectName: z
+  name: z
     .string({ required_error: "Project name is required" })
     .min(1, "Project name is required"),
-  repositoryUrl: z
+  url: z
     .string({ required_error: "Project name is required" })
     .url("Please enter a valid GitHub repository URL"),
-  githubToken: z.string().optional(),
+  token: z.string().optional(),
 });
