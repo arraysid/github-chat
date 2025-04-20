@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../lib/database";
 import { projects, usersToProjects } from "../lib/database/schema";
 import { authMiddleware } from "../middlewares";
+import { findManyCommitByProjectId } from "../repositories/commit.repository";
 import { pollCommits } from "../services/github.service";
 import { projectValidation } from "../validation/project.validation";
 
@@ -57,5 +58,19 @@ export const createProject = createEndpoint(
     await pollCommits(project.id);
 
     return { data: project };
+  },
+);
+
+export const getCommits = createEndpoint(
+  "/api/projects/commits/:projectId",
+  {
+    method: "GET",
+    use: [authMiddleware],
+  },
+  async (ctx) => {
+    const projectId = ctx.params.projectId;
+    const data = await findManyCommitByProjectId(projectId);
+
+    return { data };
   },
 );
