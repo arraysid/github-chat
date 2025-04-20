@@ -1,8 +1,10 @@
 import { createRouter } from "better-call";
-import { hello } from "./controller/hello.controller";
+import * as hello from "./controllers/hello.controller";
+import * as projects from "./controllers/project.controller";
 
 export const router = createRouter({
-  hello,
+  ...hello,
+  ...projects,
 });
 
 export type APIRouter = typeof router;
