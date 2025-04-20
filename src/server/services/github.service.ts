@@ -21,7 +21,7 @@ export async function pollCommits(projectId: string) {
   );
   const summaries = summaryResponses.map((response) => {
     if (response.status === "fulfilled") {
-      return typeof response.value === "string" ? response.value : "";
+      return response.value;
     }
     return "";
   });
