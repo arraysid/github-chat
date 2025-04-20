@@ -11,11 +11,17 @@ import { ReactNode } from "react";
 export default async function Layout({
   children,
 }: Readonly<{ children: ReactNode }>) {
-  await getSession();
+  const { user } = await getSession();
+
+  const formattedUser = {
+    name: user.name,
+    email: user.email,
+    avatar: String(user.image),
+  };
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar user={formattedUser} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
