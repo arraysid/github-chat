@@ -9,6 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 export function NavMain() {
   return (
@@ -16,16 +17,20 @@ export function NavMain() {
       <SidebarGroupLabel>Application</SidebarGroupLabel>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton>
-            <CircleGauge />
-            <span>Dashboard</span>
+          <SidebarMenuButton asChild>
+            <Link href="/dashboard">
+              <CircleGauge />
+              <span>Dashboard</span>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
 
         <SidebarMenuItem>
-          <SidebarMenuButton>
-            <MessageSquare />
-            <span>Chat</span>
+          <SidebarMenuButton asChild>
+            <Link href="/chat">
+              <MessageSquare />
+              <span>Chat</span>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

@@ -80,9 +80,11 @@ export function NavProjects({
           </SidebarMenuItem>
         ))}
         <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <Plus className="text-sidebar-foreground/70" />
-            <span>Add New Project</span>
+          <SidebarMenuButton className="text-sidebar-foreground/70" asChild>
+            <Link href="/projects/new">
+              <Plus className="text-sidebar-foreground/70" />
+              <span>Add New Project</span>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
