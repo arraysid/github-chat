@@ -4,7 +4,7 @@ import { projects } from "../lib/database/schema";
 
 export async function findOneGithubUrlByProjectId(projectId: string, tx = db) {
   const [data] = await tx
-    .select({ url: projects.url })
+    .select()
     .from(projects)
     .where(eq(projects.id, projectId))
     .limit(1);

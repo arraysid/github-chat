@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../lib/database";
 import { projects, usersToProjects } from "../lib/database/schema";
 import { authMiddleware } from "../middlewares";
+import { pollCommits } from "../services/github.service";
 import { projectValidation } from "../validation/project.validation";
 
 export const getAllProject = createEndpoint(
@@ -39,7 +40,7 @@ export const createProject = createEndpoint(
     const userId = ctx.context.session.user.id;
     const { name, url, token } = ctx.body;
 
-    await db.transaction(async (tx) => {
+    const project = await db.transaction(async (tx) => {
       const [inseredProject] = await tx
         .insert(projects)
         .values({ name, url, token })
@@ -49,8 +50,12 @@ export const createProject = createEndpoint(
         userId,
         projectId: inseredProject.id,
       });
+
+      return inseredProject;
     });
 
-    return { data: null };
+    await pollCommits(project.id);
+
+    return { data: project };
   },
 );

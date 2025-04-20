@@ -54,7 +54,7 @@ async function summarizeCommits(githubUrl: string, commitHash: string) {
 }
 
 async function getCommitHashes(githubUrl: string) {
-  const [owner, repo] = githubUrl.split("/").slice(-2);
+  const [owner, repo] = githubUrl.replace(/\/+$/, "").split("/").slice(-2);
 
   if (!owner || !repo) {
     throw new Error("Invalid github url");
