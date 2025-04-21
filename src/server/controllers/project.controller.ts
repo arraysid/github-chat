@@ -4,7 +4,7 @@ import {
   findAllProjectsByUserId,
   insertOneProject,
 } from "../repositories/project.repository";
-import { pollCommits } from "../services/github.service";
+import { indexGithubRepo, pollCommits } from "../services/github.service";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import {
   createProjectInputValidation,
@@ -34,6 +34,7 @@ export const projectRouter = createTRPCRouter({
         return await insertOneProject({ name, url, token, userId }, tx);
       });
 
+      await indexGithubRepo(data.id, data.url, data.token);
       await pollCommits(data.id);
 
       return data;

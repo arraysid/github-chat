@@ -1,7 +1,9 @@
+import { GithubRepoLoader } from "@langchain/community/document_loaders/web/github";
+import { Document } from "@langchain/core/documents";
 import axios from "axios";
 import { db } from "../lib/database";
-import { commits } from "../lib/database/schema";
-import { aiSummariseCommit } from "../lib/gemini";
+import { commits, sourceCodeEmbeddings } from "../lib/database/schema";
+import { aiSummariseCommit, generateEmbedding } from "../lib/gemini";
 import { octokit } from "../lib/octokit";
 import { findManyCommitByProjectId } from "../repositories/commit.repository";
 import { findOneGithubUrlByProjectId } from "../repositories/project.repository";
@@ -47,6 +49,63 @@ export async function pollCommits(projectId: string) {
   }
 
   return [];
+}
+
+export async function indexGithubRepo(
+  projectId: string,
+  githubUrl: string,
+  githubToken: string | null,
+) {
+  const docs = await loadGithubRepo(githubUrl, githubToken);
+  const embeddings = await generateEmbeddings(docs);
+  await Promise.allSettled(
+    embeddings.map(async (embedding, index) => {
+      console.log(`processing embedding ${index + 1} of ${embeddings.length}`);
+      if (!embedding) return;
+      const sourceCodeEmbedding = await db.insert(sourceCodeEmbeddings).values({
+        projectId,
+        summary: embedding.summary,
+        sourceCode: embedding.sourceCode,
+        fileName: embedding.fileName,
+        summaryEmbedding: embedding.embedding,
+      });
+    }),
+  );
+}
+
+async function loadGithubRepo(githubUrl: string, githubToken: string | null) {
+  const loader = new GithubRepoLoader(githubUrl, {
+    accessToken: githubToken || "",
+    branch: "main",
+    ignoreFiles: [
+      "package-lock.json",
+      "yarn.lock",
+      "pnpm-lock.yaml",
+      "bun.lockb",
+    ],
+    recursive: true,
+    unknown: "warn",
+    maxConcurrency: 5,
+  });
+
+  const docs = await loader.load();
+  return docs;
+}
+
+async function generateEmbeddings(docs: Document[]) {
+  return await Promise.all(
+    docs.map(async (doc) => {
+      const summary = await aiSummariseCommit(doc.pageContent);
+      const embedding = await generateEmbedding(summary);
+
+      return {
+        summary,
+        embedding,
+        sourceCode: JSON.parse(JSON.stringify(doc.pageContent)),
+        fileName: doc.metadata.source,
+      };
+    }),
+  );
 }
 
 async function summarizeCommits(githubUrl: string, commitHash: string) {
