@@ -30,14 +30,18 @@ export const projectRouter = createTRPCRouter({
       const userId = ctx.session.user.id;
       const { name, url, token } = input;
 
-      const data = await db.transaction(async (tx) => {
+      const project = await db.transaction(async (tx) => {
         return await insertOneProject({ name, url, token, userId }, tx);
       });
 
-      await indexGithubRepo(data.id, data.url, data.token);
-      await pollCommits(data.id);
+      await indexGithubRepo(
+        project.id,
+        url,
+        token || "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",
+      );
+      await pollCommits(project.id);
 
-      return data;
+      return project;
     }),
 
   getAllCommits: protectedProcedure

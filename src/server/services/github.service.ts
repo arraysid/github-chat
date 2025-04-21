@@ -69,6 +69,8 @@ export async function indexGithubRepo(
         fileName: embedding.fileName,
         summaryEmbedding: embedding.embedding,
       });
+
+      return sourceCodeEmbedding;
     }),
   );
 }

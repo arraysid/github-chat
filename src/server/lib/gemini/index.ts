@@ -6,8 +6,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 export async function aiSummariseCommit(diff: string): Promise<string> {
   if (!diff.trim()) throw new Error("Empty diff provided");
-
-  const maxRetries = 3;
+  const maxRetries = 5;
   const baseDelay = 1000;
   const prompt = `You are a senior engineer analyzing git commits. Generate a SPECIFIC commit summary with these rules:
 
@@ -41,26 +40,22 @@ YOUR SUMMARY:`;
     try {
       const result = await model.generateContent(prompt);
       const response = await result.response;
-
-      if (response.promptFeedback?.blockReason) {
-        return Promise.resolve("Summary blocked by safety filters");
-      }
-
+      if (response.promptFeedback?.blockReason)
+        return "Summary blocked by safety filters";
       const text = response.text().trim();
-      return Promise.resolve(text || ""); // Default return in case fail
+      return text || "";
     } catch (error: unknown) {
-      if (!isRateLimitError(error) || attempt === maxRetries) {
-        return Promise.reject(error);
-      }
-      await sleep(baseDelay * 2 ** attempt);
+      const retryDelay = getRetryDelay(error) ?? baseDelay * 2 ** attempt;
+      if (!isRateLimitError(error) || attempt === maxRetries) throw error;
+      await sleep(retryDelay);
     }
   }
-  return Promise.resolve(""); // Default return in case fail
+  return "";
 }
 
 export async function aiSummariseCode(doc: Document) {
   const code = doc.pageContent.slice(0, 10000);
-  const maxRetries = 3;
+  const maxRetries = 5;
   const baseDelay = 1000;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -74,12 +69,11 @@ export async function aiSummariseCode(doc: Document) {
         `${code}`,
         `---`,
       ]);
-      return response.response.text();
+      return response.response.text().trim();
     } catch (error: unknown) {
-      if (!isRateLimitError(error) || attempt === maxRetries) {
-        return ""; // Default return in case fail
-      }
-      await sleep(baseDelay * 2 ** attempt);
+      const retryDelay = getRetryDelay(error) ?? baseDelay * 2 ** attempt;
+      if (!isRateLimitError(error) || attempt === maxRetries) return "";
+      await sleep(retryDelay);
     }
   }
   return "";
@@ -88,8 +82,7 @@ export async function aiSummariseCode(doc: Document) {
 export async function generateEmbedding(summary: string) {
   const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
   const result = await model.embedContent(summary);
-  const embedding = result.embedding;
-  return embedding.values;
+  return result.embedding.values;
 }
 
 function sleep(ms: number) {
@@ -97,14 +90,19 @@ function sleep(ms: number) {
 }
 
 function isRateLimitError(error: unknown) {
-  return (
-    (typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error["code"] === 429) ||
-    (typeof error === "object" &&
-      error !== null &&
-      "message" in error &&
-      /(rate limit|too munknown requests)/i.test(String(error["message"])))
-  );
+  if (typeof error !== "object" || error === null) return false;
+  const message = "message" in error ? String(error["message"]) : "";
+  const code = "code" in error ? error["code"] : "";
+  return code === 429 || /rate limit|too many requests/i.test(message);
+}
+
+function getRetryDelay(error: unknown) {
+  if (typeof error !== "object" || error === null) return null;
+  const message = "message" in error ? String(error["message"]) : "";
+  const match = message.match(/"retryDelay":"(\d+)s"/);
+  if (match) {
+    const seconds = parseInt(match[1], 10);
+    return seconds * 1000;
+  }
+  return null;
 }

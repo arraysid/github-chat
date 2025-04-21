@@ -41,7 +41,7 @@ export function NavProjects() {
         ) : (
           <>
             {projects?.map((item) => (
-              <SidebarMenuItem key={item.name}>
+              <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton asChild>
                   <Link href={`/projects/${item.id}`}>
                     <FolderGit2 />
