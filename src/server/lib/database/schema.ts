@@ -59,7 +59,7 @@ export const sourceCodeEmbeddings = pgTable("source_code_embeddings", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => nanoid32()),
-  summaryEmbedding: vector("summary_embedding", { dimensions: 768 }),
+  summaryEmbedding: vector("summary_embedding", { dimensions: 786 }),
   sourceCode: text("source_code").notNull(),
   fileName: text("file_name").notNull(),
   summary: text("summary").notNull(),
