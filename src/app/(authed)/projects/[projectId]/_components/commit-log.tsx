@@ -8,19 +8,17 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apiClient } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { useParams } from "next/navigation";
 import { useGetAllProject } from "../../_hooks/use-get-all-project";
+import { useGetCommits } from "../../_hooks/use-get-commits";
 
 export function CommitLog() {
-  const params = useParams();
-  const projectId = String(params.projectId);
-
   const { data: commits, isLoading } = useGetCommits();
   const { data: projects } = useGetAllProject();
 
+  const params = useParams();
+  const projectId = String(params.projectId);
   const currentProject = projects?.find((project) => project.id === projectId);
 
   if (isLoading) {
@@ -35,7 +33,7 @@ export function CommitLog() {
 
   return (
     <div className="grid gap-3 sm:gap-4">
-      {commits?.data.map((commit) => {
+      {commits?.map((commit) => {
         const commitUrl = `${currentProject?.url}/commit/${commit.commitHash}`;
         const [title, ...description] = commit.commitMessage.split("\n");
 
@@ -119,23 +117,4 @@ export function CommitLog() {
       })}
     </div>
   );
-}
-
-export function useGetCommits() {
-  const params = useParams();
-  const projectId = String(params.projectId);
-
-  return useQuery({
-    queryKey: ["commits", projectId],
-    queryFn: async () => {
-      const { data, error } = await apiClient(
-        "/api/projects/commits/:projectId",
-        { params: { projectId } },
-      );
-
-      if (error) throw error;
-
-      return data;
-    },
-  });
 }

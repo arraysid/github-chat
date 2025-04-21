@@ -1,76 +1,62 @@
-import { createEndpoint } from "better-call";
 import { eq } from "drizzle-orm";
 import { db } from "../lib/database";
 import { projects, usersToProjects } from "../lib/database/schema";
-import { authMiddleware } from "../middlewares";
 import { findManyCommitByProjectId } from "../repositories/commit.repository";
 import { pollCommits } from "../services/github.service";
-import { projectValidation } from "../validation/project.validation";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import {
+  createProjectInputValidation,
+  createProjectOutputValidation,
+  getAllCommitsInputValidation,
+  getAllCommitsOutputValidation,
+  getAllProjectOutputValidation,
+} from "../validation/project.validation";
 
-export const getAllProject = createEndpoint(
-  "/api/projects",
-  {
-    method: "GET",
-    use: [authMiddleware],
-  },
-  async (ctx) => {
-    const userId = ctx.context.session.user.id;
+export const projectRouter = createTRPCRouter({
+  getAll: protectedProcedure
+    .output(getAllProjectOutputValidation)
+    .query(async ({ ctx }) => {
+      const userId = ctx.session.user.id;
+      const data = await db
+        .select({ projects })
+        .from(usersToProjects)
+        .innerJoin(projects, eq(usersToProjects.projectId, projects.id))
+        .where(eq(usersToProjects.userId, userId));
 
-    const data = await db
-      .select({
-        projects,
-      })
-      .from(usersToProjects)
-      .innerJoin(projects, eq(usersToProjects.projectId, projects.id))
-      .where(eq(usersToProjects.userId, userId));
+      return data.map((row) => row.projects);
+    }),
 
-    return {
-      data: data.map((row) => row.projects),
-    };
-  },
-);
+  create: protectedProcedure
+    .input(createProjectInputValidation)
+    .output(createProjectOutputValidation)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const { name, url, token } = input;
 
-export const createProject = createEndpoint(
-  "/api/projects",
-  {
-    method: "POST",
-    use: [authMiddleware],
-    body: projectValidation,
-  },
-  async (ctx) => {
-    const userId = ctx.context.session.user.id;
-    const { name, url, token } = ctx.body;
+      const data = await db.transaction(async (tx) => {
+        const [insertedProject] = await tx
+          .insert(projects)
+          .values({ name, url, token })
+          .returning();
 
-    const project = await db.transaction(async (tx) => {
-      const [inseredProject] = await tx
-        .insert(projects)
-        .values({ name, url, token })
-        .returning();
+        await tx.insert(usersToProjects).values({
+          userId,
+          projectId: insertedProject.id,
+        });
 
-      await tx.insert(usersToProjects).values({
-        userId,
-        projectId: inseredProject.id,
+        return insertedProject;
       });
 
-      return inseredProject;
-    });
+      await pollCommits(data.id);
 
-    await pollCommits(project.id);
+      return data;
+    }),
 
-    return { data: project };
-  },
-);
-
-export const getCommits = createEndpoint(
-  "/api/projects/commits/:projectId",
-  {
-    method: "GET",
-    use: [authMiddleware],
-  },
-  async (ctx) => {
-    const projectId = ctx.params.projectId;
-    const data = await findManyCommitByProjectId(projectId);
-
-    return { data };
-  },
-);
+  getAllCommits: protectedProcedure
+    .input(getAllCommitsInputValidation)
+    .output(getAllCommitsOutputValidation)
+    .query(async ({ input }) => {
+      const data = await findManyCommitByProjectId(input.projectId);
+      return data;
+    }),
+});

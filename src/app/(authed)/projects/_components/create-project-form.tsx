@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { projectValidation } from "@/server/validation/project.validation";
+import { createProjectInputValidation } from "@/server/validation/project.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -19,8 +19,8 @@ import * as z from "zod";
 import { useCreateProject } from "../_hooks/use-create-project";
 
 export function CreateProjectForm() {
-  const form = useForm<z.infer<typeof projectValidation>>({
-    resolver: zodResolver(projectValidation),
+  const form = useForm<z.infer<typeof createProjectInputValidation>>({
+    resolver: zodResolver(createProjectInputValidation),
     defaultValues: {
       name: "",
       url: "",
@@ -30,7 +30,7 @@ export function CreateProjectForm() {
 
   const { mutate } = useCreateProject();
 
-  function onSubmit(values: z.infer<typeof projectValidation>) {
+  function onSubmit(values: z.infer<typeof createProjectInputValidation>) {
     mutate(values);
     form.reset();
   }

@@ -1,15 +1,8 @@
-import { apiClient } from "@/lib/api";
+import { useTRPC } from "@/lib/trpc";
 import { useQuery } from "@tanstack/react-query";
 
 export function useGetAllProject() {
-  return useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => {
-      const { data: projects, error } = await apiClient("/api/projects", {});
+  const trpc = useTRPC();
 
-      if (error) throw error;
-
-      return projects.data;
-    },
-  });
+  return useQuery(trpc.projects.getAll.queryOptions());
 }
