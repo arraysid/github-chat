@@ -1,7 +1,9 @@
-import { eq } from "drizzle-orm";
 import { db } from "../lib/database";
-import { projects, usersToProjects } from "../lib/database/schema";
 import { findManyCommitByProjectId } from "../repositories/commit.repository";
+import {
+  findAllProjectsByUserId,
+  insertOneProject,
+} from "../repositories/project.repository";
 import { pollCommits } from "../services/github.service";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import {
@@ -17,13 +19,8 @@ export const projectRouter = createTRPCRouter({
     .output(getAllProjectOutputValidation)
     .query(async ({ ctx }) => {
       const userId = ctx.session.user.id;
-      const data = await db
-        .select({ projects })
-        .from(usersToProjects)
-        .innerJoin(projects, eq(usersToProjects.projectId, projects.id))
-        .where(eq(usersToProjects.userId, userId));
-
-      return data.map((row) => row.projects);
+      const data = await findAllProjectsByUserId(userId);
+      return data;
     }),
 
   create: protectedProcedure
@@ -34,17 +31,7 @@ export const projectRouter = createTRPCRouter({
       const { name, url, token } = input;
 
       const data = await db.transaction(async (tx) => {
-        const [insertedProject] = await tx
-          .insert(projects)
-          .values({ name, url, token })
-          .returning();
-
-        await tx.insert(usersToProjects).values({
-          userId,
-          projectId: insertedProject.id,
-        });
-
-        return insertedProject;
+        return await insertOneProject({ name, url, token, userId }, tx);
       });
 
       await pollCommits(data.id);

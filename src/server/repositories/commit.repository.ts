@@ -1,9 +1,12 @@
 import { eq } from "drizzle-orm";
-import { db } from "../lib/database";
+import { Db, db, Tx } from "../lib/database";
 import { commits } from "../lib/database/schema";
 
-export async function findManyCommitByProjectId(projectId: string, tx = db) {
-  const data = await tx
+export async function findManyCommitByProjectId(
+  projectId: string,
+  txOrDb: Db | Tx = db,
+) {
+  const data = await txOrDb
     .select()
     .from(commits)
     .where(eq(commits.projectId, projectId));
