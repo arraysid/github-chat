@@ -36,9 +36,17 @@ export async function pollCommits(projectId: string) {
     summary,
   }));
 
-  const insertedCommits = await db.insert(commits).values(rows).returning();
+  if (rows.length > 0) {
+    const insertedCommits = await db
+      .insert(commits)
+      .values(rows)
+      .onConflictDoNothing()
+      .returning();
 
-  return insertedCommits;
+    return insertedCommits;
+  }
+
+  return [];
 }
 
 async function summarizeCommits(githubUrl: string, commitHash: string) {

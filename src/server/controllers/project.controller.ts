@@ -56,7 +56,34 @@ export const projectRouter = createTRPCRouter({
     .input(getAllCommitsInputValidation)
     .output(getAllCommitsOutputValidation)
     .query(async ({ input }) => {
-      const data = await findManyCommitByProjectId(input.projectId);
-      return data;
+      try {
+        console.log("Polling commits...");
+        const [_, commits] = await Promise.allSettled([
+          pollCommits(input.projectId),
+          findManyCommitByProjectId(input.projectId),
+        ]).then((results) => {
+          const pollResult = results[0];
+          const commitResult = results[1];
+
+          if (pollResult.status === "rejected") {
+            console.error("Error polling commits:", pollResult.reason);
+          }
+
+          if (commitResult.status === "fulfilled") {
+            return [
+              pollResult.status === "rejected" ? pollResult.reason : null,
+              commitResult.value,
+            ];
+          } else {
+            throw new Error("Failed to fetch commits.");
+          }
+        });
+
+        console.log("Polling commits completed successfully.");
+        return commits;
+      } catch (error) {
+        console.error("Error fetching commits:", error);
+        throw new Error("Failed to fetch commits.");
+      }
     }),
 });
