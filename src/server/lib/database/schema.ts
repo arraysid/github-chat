@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, vector } from "drizzle-orm/pg-core";
 import { nanoid32 } from "../nanoid";
 import { users } from "./auth-schema";
 
@@ -53,6 +53,19 @@ export const commits = pgTable("commits", {
   summary: text("summary").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+export const sourceCodeEmbeddings = pgTable("source_code_embeddings", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => nanoid32()),
+  summaryEmbedding: vector("summary_embedding", { dimensions: 768 }),
+  sourceCode: text("source_code").notNull(),
+  fileName: text("file_name").notNull(),
+  summary: text("summary").notNull(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => projects.id),
 });
 
 export * from "./auth-schema";
