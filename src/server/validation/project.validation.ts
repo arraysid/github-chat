@@ -38,8 +38,5 @@ export const getAllCommitsOutputValidation = z.array(
     commitAuthorName: z.string(),
     commitAuthorAvatar: z.string(),
     commitDate: z.date(),
-    summary: z.string(),
-    createdAt: z.date().nullable(),
-    updatedAt: z.date().nullable(),
   }),
 );

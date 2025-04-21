@@ -6,36 +6,26 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 export async function aiSummariseCommit(diff: string): Promise<string> {
   if (!diff.trim()) return "";
-  const prompt = `You are a senior engineer analyzing git commits. Generate a SPECIFIC commit summary with these rules:
+  const COMMIT_PROMPT = `
+**Role:** Senior engineer analyzing git commits
+**Output Format:**
+* Begin with "* ", present tense verbs
+* Include key files in [brackets] when relevant (max 2)
+* No markdown
 
-FORMAT RULES:
-1. Always start bullet points with "* " (never '-')
-2. Use present tense verbs ("Add", "Fix", "Update")
-3. Mention key files in brackets when relevant (max 2 per bullet)
-4. Never use markdown
+**Avoid:** Vague terms ("Updated files"), hyphens, trivial changes
 
-BAD RESPONSES WILL BE REJECTED:
-❌ "Updated files"
-❌ "- Fixed bug"
-❌ "No changes"
-
-GOOD EXAMPLES:
+**Examples:**
 * Increase API timeout to 30s [src/api/client.ts]
-* Add validation for email formats [utils/validators.ts]
-* Refactor database connection logic
+* Add email format validation [utils/validators.ts]
 
-DIFF ANALYSIS RULES:
-1. Ignore trivial changes (comments, whitespace)
-2. Focus on code logic changes
-3. Identify primary purpose of commit
-
-GIT DIFF TO ANALYZE:
+**Task:** Analyze this diff focusing on code logic changes:
 ${diff}
 
-YOUR SUMMARY:`;
+Summary:`;
 
   try {
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(COMMIT_PROMPT);
     const response = await result.response;
     if (response.promptFeedback?.blockReason) return "";
     return response.text().trim();
@@ -46,17 +36,19 @@ YOUR SUMMARY:`;
 
 export async function aiSummariseCode(doc: Document): Promise<string> {
   const code = doc.pageContent.slice(0, 10000);
+  const CODE_PROMPT = `
+Summarize this code from ${doc.metadata.source} for junior developers:
+- Purpose and core functionality
+- Max 100 words
+- Clear technical terms
+
+Code:
+${code.slice(0, 10000)}
+
+Summary:`;
 
   try {
-    const response = await model.generateContent([
-      `You are a senior software engineer tasked with mentoring juniors.`,
-      `Summarize the following code clearly, focusing on its purpose and functionality.`,
-      `Use no more than 100 words.`,
-      `File: ${doc.metadata.source}`,
-      `---`,
-      `${code}`,
-      `---`,
-    ]);
+    const response = await model.generateContent(CODE_PROMPT);
     return response.response.text().trim();
   } catch {
     return "";
