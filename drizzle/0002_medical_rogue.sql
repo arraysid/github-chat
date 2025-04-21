@@ -1,1 +1,0 @@
-ALTER TABLE "source_code_embeddings" ALTER COLUMN "summary_embedding" SET DATA TYPE vector(768);

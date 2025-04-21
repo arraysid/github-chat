@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1745212860060,
-      "tag": "0000_famous_meggan",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1745213337648,
-      "tag": "0001_clever_fenris",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1745213996435,
-      "tag": "0002_medical_rogue",
+      "when": 1745216841658,
+      "tag": "0000_fair_ultimo",
       "breakpoints": true
     }
   ]
