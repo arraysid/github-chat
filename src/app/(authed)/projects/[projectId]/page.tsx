@@ -6,9 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { SendHorizonal } from "lucide-react";
 import { RiCalendarEventLine } from "react-icons/ri";
+import { ChatCard } from "./_components/chat-card";
 import { CommitLog } from "./_components/commit-log";
 
 export default function Page() {
@@ -36,32 +35,6 @@ export default function Page() {
         </div>
       </div>
     </main>
-  );
-}
-
-function ChatCard() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Ask about your project</CardTitle>
-        <CardDescription>
-          Get explanations, refactoring suggestions, and commit analysis
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="flex flex-col gap-4">
-          <Textarea
-            placeholder="e.g Where in the codebase is the function to create a new user?"
-            className="min-h-[120px] resize-none"
-          />
-          <div className="flex justify-end">
-            <Button type="submit" className="gap-2">
-              Send <SendHorizonal className="h-4 w-4" />
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
   );
 }
 
