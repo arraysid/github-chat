@@ -28,6 +28,7 @@ export const projectRouter = createTRPCRouter({
     .output(createProjectOutputValidation)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
+      const userGithubAccessToken = ctx.session.user.github_access_token;
       const { name, url, token } = input;
 
       const project = await db.transaction(async (tx) => {
@@ -37,7 +38,7 @@ export const projectRouter = createTRPCRouter({
       await indexGithubRepo(
         project.id,
         url,
-        token || "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",
+        token || userGithubAccessToken || "",
       );
       await pollCommits(project.id);
 

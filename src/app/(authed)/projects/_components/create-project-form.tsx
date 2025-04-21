@@ -28,7 +28,7 @@ export function CreateProjectForm() {
     },
   });
 
-  const { mutate } = useCreateProject();
+  const { mutate, isPending } = useCreateProject();
 
   function onSubmit(values: z.infer<typeof createProjectInputValidation>) {
     mutate(values);
@@ -170,9 +170,9 @@ export function CreateProjectForm() {
             <Button
               type="submit"
               className="h-10 w-full font-semibold"
-              disabled={form.formState.isSubmitting}
+              disabled={isPending}
             >
-              {form.formState.isSubmitting ? "Creating..." : "Create Project"}
+              {isPending ? "Creating..." : "Create Project"}
             </Button>
           </motion.div>
         </form>
